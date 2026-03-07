@@ -2,6 +2,10 @@ import 'dart:ui';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/services/ai_vision_service.dart';
+import '../../../../core/providers/app_state_provider.dart';
+import '../../../../core/models/vinyl.dart';
+import 'package:provider/provider.dart';
 
 class ScanScreen extends StatefulWidget {
   const ScanScreen({super.key});
@@ -16,6 +20,8 @@ class _ScanScreenState extends State<ScanScreen> {
   bool _isAnalyzing = false;
   bool _hasError = false;
   String _errorMessage = '';
+  
+  final AiVisionService _aiService = AiVisionService();
 
   @override
   void initState() {
@@ -67,15 +73,21 @@ class _ScanScreenState extends State<ScanScreen> {
       // 1. Capture Image
       final XFile image = await _controller!.takePicture();
       
-      // 2. Simulate AI Analysis Delay (Eve's animation time)
-      await Future.delayed(const Duration(seconds: 3));
+      // 2. AI Analysis
+      final result = await _aiService.analyzeVinylCover(image);
 
-      // 3. Mock Result for Demo
+      // 3. Result Handing
       if (mounted) {
-        _showResultDialog(image);
+        if (result != null) {
+          _showResultDialog(image, result);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to analyze. Please try again.')),
+          );
+        }
       }
     } catch (e) {
-      debugPrint('Error taking picture: $e');
+      debugPrint('Error taking picture/analyzing: $e');
     } finally {
       if (mounted) {
         setState(() => _isAnalyzing = false);
@@ -83,7 +95,7 @@ class _ScanScreenState extends State<ScanScreen> {
     }
   }
 
-  void _showResultDialog(XFile image) {
+  void _showResultDialog(XFile image, AiAnalysisResult result) {
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
@@ -130,30 +142,34 @@ class _ScanScreenState extends State<ScanScreen> {
                               child: SizedBox(
                                 width: 100,
                                 height: 100,
-                                child: Image.asset('assets/images/jazz.png', fit: BoxFit.cover),
+                                child: Image.network(image.path, fit: BoxFit.cover, errorBuilder: (c, e, s) => Image.asset('assets/images/jazz.png', fit: BoxFit.cover)),
                               ),
                             ),
                             const SizedBox(width: 16),
-                            const Expanded(
+                            Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Midnight Echoes',
-                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                    result.title,
+                                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                                   ),
                                   Text(
-                                    'The Jazz Quintet',
-                                    style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                                    result.artist,
+                                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
                                   ),
-                                  SizedBox(height: 12),
-                                  Text(
-                                    r'Market Value: $45.00',
+                                  const SizedBox(height: 12),
+                                  const Text(
+                                    r'Market Value: $--.--', // Discogs API placeholder
                                     style: TextStyle(color: AppColors.aqua, fontWeight: FontWeight.bold),
                                   ),
                                   Text(
-                                    'Released: 1968',
-                                    style: TextStyle(color: AppColors.textSecondary, fontSize: 10),
+                                    'Genre: ${result.genre}',
+                                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                                  ),
+                                  Text(
+                                    'Released: ${result.year > 0 ? result.year : "Unknown"}',
+                                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 10),
                                   ),
                                 ],
                               ),
@@ -163,6 +179,17 @@ class _ScanScreenState extends State<ScanScreen> {
                         const SizedBox(height: 32),
                         ElevatedButton(
                           onPressed: () {
+                            // Stage 5 Data Layer Integration
+                            final newVinyl = Vinyl(
+                              title: result.title,
+                              artist: result.artist,
+                              genre: result.genre,
+                              year: result.year,
+                              coverUrl: 'assets/images/jazz.png', // Temporary local image
+                            );
+                            
+                            context.read<CollectionProvider>().addVinyl(newVinyl);
+                            
                             Navigator.pop(context); // Close Dialog
                             Navigator.pop(context); // Go back from ScanScreen
                           },
