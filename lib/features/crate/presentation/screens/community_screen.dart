@@ -1,14 +1,21 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../data/mock_data.dart';
+import '../../../../core/providers/app_state_provider.dart';
+import 'package:provider/provider.dart';
 
 class CommunityScreen extends StatelessWidget {
   const CommunityScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final vinyls = MockData.getVinyls().take(10).toList();
+    final collection = context.watch<CollectionProvider>();
+    
+    if (collection.isLoading) {
+      return const Center(child: CircularProgressIndicator(color: AppColors.aqua));
+    }
+    
+    final vinyls = collection.vinyls.take(10).toList();
 
     return Scaffold(
       extendBodyBehindAppBar: true,

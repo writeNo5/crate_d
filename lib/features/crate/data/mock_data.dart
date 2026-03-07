@@ -12,7 +12,7 @@ class MockData {
     return List.generate(100, (index) {
       final p = premiumVinyls[index % premiumVinyls.length];
       return Vinyl(
-        id: 'v$index',
+        id: index,
         title: p['title']!,
         artist: p['artist']!,
         coverUrl: p['image']!,

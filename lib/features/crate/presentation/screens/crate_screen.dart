@@ -3,7 +3,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
-import '../../data/mock_data.dart';
+import '../../../../core/providers/app_state_provider.dart';
+import 'package:provider/provider.dart';
 import '../widgets/vinyl_grid_item.dart';
 
 class CrateScreen extends StatefulWidget {
@@ -19,7 +20,13 @@ class _CrateScreenState extends State<CrateScreen> {
 
   @override
   Widget build(BuildContext context) {
-    var vinyls = MockData.getVinyls();
+    final collection = context.watch<CollectionProvider>();
+    
+    if (collection.isLoading) {
+      return const Center(child: CircularProgressIndicator(color: AppColors.aqua));
+    }
+    
+    var vinyls = List.from(collection.vinyls);
 
     // Apply Sorting
     if (_sortBy == 'Artist') {

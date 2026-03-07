@@ -7,14 +7,25 @@ import 'features/crate/presentation/screens/crate_screen.dart';
 import 'features/crate/presentation/screens/scan_screen.dart';
 
 import 'package:provider/provider.dart';
+import 'package:isar/isar.dart';
+import 'package:path_provider/path_provider.dart';
 import 'core/providers/app_state_provider.dart';
+import 'core/models/vinyl.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  final dir = await getApplicationDocumentsDirectory();
+  final isar = await Isar.open(
+    [VinylSchema],
+    directory: dir.path,
+  );
+
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(create: (_) => CollectionProvider()),
+        ChangeNotifierProvider(create: (_) => CollectionProvider(isar)),
       ],
       child: const CrateDApp(),
     ),

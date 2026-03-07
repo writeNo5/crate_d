@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:isar/isar.dart';
+import '../models/vinyl.dart';
+import '../../features/crate/data/mock_data.dart';
 
 class ThemeProvider with ChangeNotifier {
   bool _isDarkMode = true;
@@ -11,28 +14,65 @@ class ThemeProvider with ChangeNotifier {
 }
 
 class CollectionProvider with ChangeNotifier {
-  int _totalCollection = 128;
-  double _totalValue = 4200.0;
-  double _valueChangePercentage = 12.5; // Represents +12.5%
+  final Isar isar;
+  List<Vinyl> _vinyls = [];
+  bool _isLoading = true;
+
+  double _valueChangePercentage = 12.5; // Dummy, could be dynamic later
   int _wishlistCount = 15;
 
-  int get totalCollection => _totalCollection;
-  double get totalValue => _totalValue;
+  CollectionProvider(this.isar) {
+    _init();
+  }
+
+  Future<void> _init() async {
+    final count = await isar.vinyls.count();
+    if (count == 0) {
+      final mocks = MockData.getVinyls().take(10).toList();
+      await isar.writeTxn(() async {
+        await isar.vinyls.putAll(mocks);
+      });
+    }
+
+    await fetchVinyls();
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  List<Vinyl> get vinyls => _vinyls;
+  bool get isLoading => _isLoading;
+
+  int get totalCollection => _vinyls.length;
+  
+  double get totalValue => _vinyls.fold(0.0, (sum, v) => sum + (v.avgPrice ?? 0.0));
+  
   double get valueChangePercentage => _valueChangePercentage;
   int get wishlistCount => _wishlistCount;
 
-  // Formatting helper
   String get formattedValue {
-    if (_totalValue >= 1000) {
-      return '\$${(_totalValue / 1000).toStringAsFixed(1)}K';
+    final value = totalValue;
+    if (value >= 1000) {
+      return '\$${(value / 1000).toStringAsFixed(1)}K';
     }
-    return '\$${_totalValue.toStringAsFixed(2)}';
+    return '\$${value.toStringAsFixed(2)}';
   }
 
-  // Simulate updating stats
-  void addVinylToCollection(double value) {
-    _totalCollection++;
-    _totalValue += value;
+  Future<void> fetchVinyls() async {
+    _vinyls = await isar.vinyls.where().sortByAddedAtDesc().findAll();
     notifyListeners();
+  }
+
+  Future<void> addVinyl(Vinyl vinyl) async {
+    await isar.writeTxn(() async {
+      await isar.vinyls.put(vinyl);
+    });
+    await fetchVinyls();
+  }
+  
+  Future<void> deleteVinyl(Id id) async {
+    await isar.writeTxn(() async {
+      await isar.vinyls.delete(id);
+    });
+    await fetchVinyls();
   }
 }

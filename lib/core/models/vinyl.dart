@@ -1,5 +1,11 @@
+import 'package:isar/isar.dart';
+
+part 'vinyl.g.dart';
+
+@collection
 class Vinyl {
-  final String id;
+  Id id;
+  
   final String title;
   final String artist;
   final String coverUrl;
@@ -8,9 +14,12 @@ class Vinyl {
   final double? maxPrice;
   final String genre;
   final int year;
+  
+  @Index(type: IndexType.value)
+  DateTime? addedAt;
 
   Vinyl({
-    required this.id,
+    this.id = Isar.autoIncrement,
     required this.title,
     required this.artist,
     required this.coverUrl,
@@ -19,5 +28,6 @@ class Vinyl {
     this.maxPrice,
     required this.genre,
     required this.year,
-  });
+    DateTime? addedAt,
+  }) : addedAt = addedAt ?? DateTime.now();
 }
