@@ -15,7 +15,7 @@ extension GetVinylCollection on Isar {
 
 const VinylSchema = CollectionSchema(
   name: r'Vinyl',
-  id: 3644805686744984571,
+  id: -1, // Patched for web compile
   properties: {
     r'addedAt': PropertySchema(
       id: 0,
@@ -70,7 +70,7 @@ const VinylSchema = CollectionSchema(
   idName: r'id',
   indexes: {
     r'addedAt': IndexSchema(
-      id: -8595779697745674092,
+      id: -2, // Patched for web compile
       name: r'addedAt',
       unique: false,
       replace: false,
