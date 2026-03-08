@@ -6,6 +6,7 @@ import 'features/crate/presentation/screens/community_screen.dart';
 import 'features/crate/presentation/screens/crate_screen.dart';
 import 'features/crate/presentation/screens/scan_screen.dart';
 
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
@@ -16,19 +17,35 @@ import 'core/models/vinyl.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  await dotenv.load(fileName: '.env');
+  try {
+    await dotenv.load(fileName: '.env');
+  } catch (e) {
+    debugPrint('Failed to load .env file: $e');
+  }
   
-  final dir = await getApplicationDocumentsDirectory();
-  final isar = await Isar.open(
-    [VinylSchema],
-    directory: dir.path,
-  );
+  Isar? isar;
+  try {
+    if (kIsWeb) {
+      isar = await Isar.open(
+        [VinylSchema],
+        directory: '', // Web implementation ignores this, but parameter is required
+      );
+    } else {
+      final dir = await getApplicationDocumentsDirectory();
+      isar = await Isar.open(
+        [VinylSchema],
+        directory: dir.path,
+      );
+    }
+  } catch (e) {
+    debugPrint('Failed to open Isar: $e');
+  }
 
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(create: (_) => CollectionProvider(isar)),
+        ChangeNotifierProvider(create: (_) => CollectionProvider(isar!)),
       ],
       child: const CrateDApp(),
     ),
