@@ -42,9 +42,15 @@ jobs:
 
       - name: Check Build Success
         run: |
-          if grep -q "Error: Failed to compile" build.log; then
-            echo "Build failed!"
-            cat build.log
+          if grep -q "Error: Failed to compile" build.log || grep -q "exit code" build.log; then
+            echo "Build failed! Committing log to repo for debug..."
+            git config --global user.name 'github-actions[bot]'
+            git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+            git checkout -b debug-logs || true
+            cp build.log error_build.log
+            git add error_build.log
+            git commit -m "chore: upload build failure logs"
+            git push origin HEAD:debug-logs --force
             exit 1
           fi
 
