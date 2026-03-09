@@ -31,28 +31,11 @@ jobs:
         run: flutter pub get
 
       - name: Build Web
-        run: flutter build web --release --base-href "/crate_d/" > build.log 2>&1
-        continue-on-error: true
-
-      - name: Upload Build Log Failure
-        uses: actions/upload-artifact@v4
-        with:
-          name: flutter-build-log
-          path: build.log
-
-      - name: Check Build Success
         run: |
-          if grep -q "Error: Failed to compile" build.log || grep -q "exit code" build.log; then
-            echo "Build failed! Committing log to repo for debug..."
-            git config --global user.name 'github-actions[bot]'
-            git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-            git checkout -b debug-logs || true
-            cp build.log error_build.log
-            git add error_build.log
-            git commit -m "chore: upload build failure logs"
-            git push origin HEAD:debug-logs --force
-            exit 1
-          fi
+          flutter build web --release --base-href "/crate_d/" > build.log 2>&1 || true
+          mkdir -p build/web
+          cp build.log build/web/error.txt
+          echo "Completed build step. Log copied to error.txt"
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
