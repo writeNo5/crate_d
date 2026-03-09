@@ -33,8 +33,8 @@ class AiVisionService {
 
   AiVisionService()
       : _model = GenerativeModel(
-          model: 'gemini-1.5-flash', // Or gemini-2.5-flash if available
-          apiKey: dotenv.env['GEMINI_API_KEY'] ?? '',
+          model: 'gemini-1.5-flash',
+          apiKey: (dotenv.env['GEMINI_API_KEY'] ?? '').trim(),
           generationConfig: GenerationConfig(
             responseMimeType: 'application/json',
           ),
@@ -42,9 +42,10 @@ class AiVisionService {
 
   Future<AiAnalysisResult?> analyzeVinylCover(XFile imageFile) async {
     try {
-      if (dotenv.env['GEMINI_API_KEY'] == null || dotenv.env['GEMINI_API_KEY']!.isEmpty || dotenv.env['GEMINI_API_KEY'] == 'YOUR_GEMINI_API_KEY_HERE') {
+      final apiKey = (dotenv.env['GEMINI_API_KEY'] ?? '').trim();
+      if (apiKey.isEmpty || apiKey == 'YOUR_GEMINI_API_KEY_HERE') {
         // Fallback or early return if no API key is set
-        print("Warning: Gemini API Key not set. Returning mock data.");
+        print("Warning: Gemini API Key not set or default. Returning mock data.");
         await Future.delayed(const Duration(seconds: 2));
         return AiAnalysisResult(
           artist: 'Mock Artist',

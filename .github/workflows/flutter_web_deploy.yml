@@ -24,18 +24,15 @@ jobs:
           channel: 'stable'
 
       - name: Inject Environment Variables (API Key)
-        run: |
-          echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" > .env
+        env:
+          KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: printf "GEMINI_API_KEY=%s" "$KEY" > .env
 
       - name: Install dependencies
         run: flutter pub get
 
       - name: Build Web
-        run: |
-          flutter build web --release --base-href "/crate_d/" > build.log 2>&1 || true
-          mkdir -p build/web
-          cp build.log build/web/error.txt
-          echo "Completed build step. Log copied to error.txt"
+        run: flutter build web --release --base-href "/crate_d/"
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
