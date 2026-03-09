@@ -73,7 +73,17 @@ class AiVisionService {
         - "year": Guess the decade or year of release based on the style, just the number (e.g., 1980, 2010).
       ''');
       
-      final String mimeType = imageFile.path.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg';
+      String mimeType = imageFile.mimeType ?? '';
+      if (mimeType.isEmpty) {
+        if (imageFile.name.toLowerCase().endsWith('.png') || imageFile.path.toLowerCase().endsWith('.png')) {
+          mimeType = 'image/png';
+        } else if (bytes.length > 4 && bytes[0] == 0x89 && bytes[1] == 0x50 && bytes[2] == 0x4E && bytes[3] == 0x47) {
+          mimeType = 'image/png'; // PNG magic bytes
+        } else {
+          mimeType = 'image/jpeg'; // Fallback
+        }
+      }
+      
       final imagePart = DataPart(mimeType, bytes);
       
       final response = await _model.generateContent([
@@ -102,7 +112,7 @@ class AiVisionService {
       return null;
     } catch (e) {
       print('Error during AI analysis: $e');
-      return null;
+      throw Exception('AI API Error: $e');
     }
   }
 }

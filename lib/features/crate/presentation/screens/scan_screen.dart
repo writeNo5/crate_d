@@ -107,7 +107,7 @@ class _ScanScreenState extends State<ScanScreen> {
             context: context,
             builder: (ctx) => AlertDialog(
               title: const Text('Analysis Failed'),
-              content: const Text('Could not analyze the image. Please verify your GEMINI_API_KEY in the .env file and ensure you are connected to the network.'),
+              content: const Text('The AI did not return a valid result. Please try another image.'),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(ctx),
@@ -120,6 +120,21 @@ class _ScanScreenState extends State<ScanScreen> {
       }
     } catch (e) {
       debugPrint('Error taking picture/analyzing: $e');
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Analysis Error'),
+            content: Text(e.toString()),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
     } finally {
       if (mounted) {
         setState(() => _isAnalyzing = false);
