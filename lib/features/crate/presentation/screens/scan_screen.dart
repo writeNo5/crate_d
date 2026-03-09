@@ -34,8 +34,17 @@ class _ScanScreenState extends State<ScanScreen> {
     final cameras = await availableCameras();
     if (cameras.isEmpty) return;
 
+    // Try to find the back camera first
+    CameraDescription? backCamera;
+    for (var camera in cameras) {
+      if (camera.lensDirection == CameraLensDirection.back) {
+        backCamera = camera;
+        break;
+      }
+    }
+
     _controller = CameraController(
-      cameras.first,
+      backCamera ?? cameras.first, // Fallback to first if back camera not found
       ResolutionPreset.high,
       enableAudio: false,
     );
