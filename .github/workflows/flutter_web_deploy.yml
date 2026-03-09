@@ -24,9 +24,8 @@ jobs:
           channel: 'stable'
 
       - name: Inject Environment Variables (API Key)
-        env:
-          KEY: ${{ secrets.GEMINI_API_KEY }}
-        run: printf "GEMINI_API_KEY=%s" "$KEY" > .env
+        run: |
+          echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" > .env
 
       - name: Install dependencies
         run: flutter pub get
