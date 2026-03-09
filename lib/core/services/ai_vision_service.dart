@@ -33,7 +33,7 @@ class AiVisionService {
 
   AiVisionService()
       : _model = GenerativeModel(
-          model: 'gemini-1.5-flash',
+          model: 'models/gemini-1.5-flash',
           apiKey: (dotenv.env['GEMINI_API_KEY'] ?? '').trim(),
           generationConfig: GenerationConfig(
             responseMimeType: 'application/json',
