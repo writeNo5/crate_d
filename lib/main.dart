@@ -25,17 +25,14 @@ void main() async {
   
   Isar? isar;
   try {
-    if (kIsWeb) {
-      isar = await Isar.open(
-        [VinylSchema],
-        directory: '', // Web implementation ignores this, but parameter is required
-      );
-    } else {
+    if (!kIsWeb) {
       final dir = await getApplicationDocumentsDirectory();
       isar = await Isar.open(
         [VinylSchema],
         directory: dir.path,
       );
+    } else {
+      debugPrint('Web environment detected. Isar local storage bypassed. Running entirely in-memory.');
     }
   } catch (e) {
     debugPrint('Failed to open Isar: $e');
@@ -45,7 +42,7 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(create: (_) => CollectionProvider(isar!)),
+        ChangeNotifierProvider(create: (_) => CollectionProvider(isar)),
       ],
       child: const CrateDApp(),
     ),

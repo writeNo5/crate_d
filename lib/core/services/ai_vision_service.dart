@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:camera/camera.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 
@@ -52,7 +54,14 @@ class AiVisionService {
         );
       }
 
-      final bytes = await imageFile.readAsBytes();
+      late Uint8List bytes;
+      if (imageFile.path.startsWith('assets/')) {
+        final byteData = await rootBundle.load(imageFile.path);
+        bytes = byteData.buffer.asUint8List();
+      } else {
+        bytes = await imageFile.readAsBytes();
+      }
+      
       final prompt = TextPart('''
         Analyze this vinyl record cover. Please extract the following information and return it strictly in JSON format.
         Do not add Markdown formatting to the output, just raw JSON.

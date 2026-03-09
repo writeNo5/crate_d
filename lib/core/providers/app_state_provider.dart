@@ -14,23 +14,30 @@ class ThemeProvider with ChangeNotifier {
 }
 
 class CollectionProvider with ChangeNotifier {
-  final Isar isar;
+  final Isar? isar;
   List<Vinyl> _vinyls = [];
   bool _isLoading = true;
 
-  double _valueChangePercentage = 12.5; // Dummy, could be dynamic later
-  int _wishlistCount = 15;
+  final double _valueChangePercentage = 12.5; // Dummy, could be dynamic later
+  final int _wishlistCount = 15;
 
   CollectionProvider(this.isar) {
     _init();
   }
 
   Future<void> _init() async {
-    final count = await isar.vinyls.count();
+    if (isar == null) {
+      _vinyls = MockData.getVinyls().take(10).toList();
+      _isLoading = false;
+      notifyListeners();
+      return;
+    }
+  
+    final count = await isar!.vinyls.count();
     if (count == 0) {
       final mocks = MockData.getVinyls().take(10).toList();
-      await isar.writeTxn(() async {
-        await isar.vinyls.putAll(mocks);
+      await isar!.writeTxn(() async {
+        await isar!.vinyls.putAll(mocks);
       });
     }
 
@@ -58,20 +65,34 @@ class CollectionProvider with ChangeNotifier {
   }
 
   Future<void> fetchVinyls() async {
-    _vinyls = await isar.vinyls.where().sortByAddedAtDesc().findAll();
+    if (isar == null) {
+      notifyListeners();
+      return;
+    }
+    _vinyls = await isar!.vinyls.where().sortByAddedAtDesc().findAll();
     notifyListeners();
   }
 
   Future<void> addVinyl(Vinyl vinyl) async {
-    await isar.writeTxn(() async {
-      await isar.vinyls.put(vinyl);
+    if (isar == null) {
+      _vinyls.insert(0, vinyl);
+      notifyListeners();
+      return;
+    }
+    await isar!.writeTxn(() async {
+      await isar!.vinyls.put(vinyl);
     });
     await fetchVinyls();
   }
   
   Future<void> deleteVinyl(Id id) async {
-    await isar.writeTxn(() async {
-      await isar.vinyls.delete(id);
+    if (isar == null) {
+      _vinyls.removeWhere((v) => v.id == id);
+      notifyListeners();
+      return;
+    }
+    await isar!.writeTxn(() async {
+      await isar!.vinyls.delete(id);
     });
     await fetchVinyls();
   }

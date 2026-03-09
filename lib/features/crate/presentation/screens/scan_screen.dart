@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/services/ai_vision_service.dart';
 import '../../../../core/providers/app_state_provider.dart';
@@ -65,13 +66,25 @@ class _ScanScreenState extends State<ScanScreen> {
   }
 
   Future<void> _takePictureAndAnalyze() async {
-    if (_controller == null || !_controller!.value.isInitialized || _isAnalyzing) return;
+    if (_isAnalyzing) return;
 
     setState(() => _isAnalyzing = true);
 
     try {
-      // 1. Capture Image
-      final XFile image = await _controller!.takePicture();
+      XFile? image;
+      
+      // 1. Capture Image or Use Fallback Image
+      if (_controller != null && _controller!.value.isInitialized) {
+        image = await _controller!.takePicture();
+      } else {
+        // Fallback for Web/Emulator testing without real camera
+        debugPrint('Camera not available. Using fallback demo image.');
+        await Future.delayed(const Duration(seconds: 1)); // Simulate capture delay
+        
+        // This won't create a real local file on web, but we can pass it to the service if we change its signature or use a known image.
+        // For web compatibility we'll pass a dummy path that AiVisionService handles or pass bytes directly.
+        image = XFile('assets/images/jazz.png');
+      }
       
       // 2. AI Analysis
       final result = await _aiService.analyzeVinylCover(image);
