@@ -92,10 +92,20 @@ class _ScanScreenState extends State<ScanScreen> {
       // 3. Result Handing
       if (mounted) {
         if (result != null) {
-          _showResultDialog(image, result);
+          _showResultDialog(image!, result);
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Failed to analyze. Please try again.')),
+          showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Text('Analysis Failed'),
+              content: const Text('Could not analyze the image. Please verify your GEMINI_API_KEY in the .env file and ensure you are connected to the network.'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
           );
         }
       }
@@ -257,7 +267,13 @@ class _ScanScreenState extends State<ScanScreen> {
               ),
             )
           else
-            const Center(child: CircularProgressIndicator(color: AppColors.aqua)),
+            // Fallback Preview for Web
+            Center(
+              child: Opacity(
+                opacity: 0.5,
+                child: Image.asset('assets/images/jazz.png', fit: BoxFit.cover),
+              ),
+            ),
 
           // Glassmorphism Overlay
           Positioned.fill(

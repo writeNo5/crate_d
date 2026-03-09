@@ -73,7 +73,8 @@ class AiVisionService {
         - "year": Guess the decade or year of release based on the style, just the number (e.g., 1980, 2010).
       ''');
       
-      final imagePart = DataPart('image/jpeg', bytes);
+      final String mimeType = imageFile.path.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg';
+      final imagePart = DataPart(mimeType, bytes);
       
       final response = await _model.generateContent([
         Content.multi([prompt, imagePart])
