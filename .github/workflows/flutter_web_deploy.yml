@@ -31,7 +31,22 @@ jobs:
         run: flutter pub get
 
       - name: Build Web
-        run: flutter build web --release --base-href "/crate_d/"
+        run: flutter build web --release --base-href "/crate_d/" > build.log 2>&1
+        continue-on-error: true
+
+      - name: Upload Build Log Failure
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-build-log
+          path: build.log
+
+      - name: Check Build Success
+        run: |
+          if grep -q "Error: Failed to compile" build.log; then
+            echo "Build failed!"
+            cat build.log
+            exit 1
+          fi
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
