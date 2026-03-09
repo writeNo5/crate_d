@@ -35,7 +35,8 @@ class AppTheme {
       ),
       
       // 카드 테마: 프리미엄 다크 스타일
-      cardTheme: CardTheme(
+      // 카드 테마: 프리미엄 다크 스타일
+      cardTheme: CardThemeData(
         color: AppColors.surface,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
