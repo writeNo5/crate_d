@@ -43713,7 +43713,7 @@ A.ph.prototype={
 al(){var s,r=null,q=$.apO().gQG().i(0,"GEMINI_API_KEY")
 q=B.c.hm(q==null?"":q)
 s=A.aL2("https","generativelanguage.googleapis.com","v1beta",r)
-return new A.E5(new A.Xz(new A.a1S(A.aG5("models/gemini-1.5-flash"),B.G4,new A.a1R("application/json"),r,new A.a30(q,r),s,r,r)))}}
+return new A.E5(new A.Xz(new A.a1S(A.aG5("gemini-1.5-flash"),B.G4,new A.a1R("application/json"),r,new A.a30(q,r),s,r,r)))}}
 A.E5.prototype={
 aq(){this.aP()
 this.qL()},
